@@ -1,0 +1,75 @@
+/* Card styles */
+.elegant-card {
+  @apply bg-white/90 backdrop-blur-sm shadow-xl rounded-2xl border border-amber-100/20;
+}
+
+/* Mobile-first card padding */
+.mobile-card-padding {
+  @apply p-6 sm:p-8;
+}
+
+/* Mobile-friendly text sizes */
+.mobile-text {
+  @apply text-base sm:text-lg;
+}
+
+.mobile-heading {
+  @apply text-xl sm:text-2xl md:text-3xl font-bold;
+}
+
+.mobile-subheading {
+  @apply text-lg sm:text-xl md:text-2xl font-semibold;
+}
+
+/* Mobile-friendly spacing */
+.mobile-spacing {
+  @apply space-y-6 sm:space-y-8;
+}
+
+.mobile-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6;
+}
+
+/* Header styles */
+.header {
+  @apply bg-white/70 backdrop-blur-sm shadow-sm sticky top-0 z-50;
+}
+
+.header-container {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4;
+}
+
+.header-content {
+  @apply flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3;
+}
+
+.logo-container {
+  @apply flex items-center justify-center sm:justify-start;
+}
+
+.logo {
+  @apply h-16 sm:h-20 object-contain;
+}
+
+/* Cart badge */
+.cart-badge {
+  @apply bg-amber-100 px-3 py-1 rounded-full text-amber-700 flex items-center gap-2;
+}
+
+/* Footer styles */
+.footer {
+  @apply mt-16 py-6 sm:py-8 bg-white/70 backdrop-blur-sm border-t border-amber-100;
+}
+
+.footer-container {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 text-center;
+}
+
+.footer-text {
+  @apply text-sm sm:text-base text-gray-600;
+}
+
+/* Main content */
+.main-container {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8;
+}
