@@ -1,14 +1,25 @@
-// src/services/api.ts
 import axios from 'axios';
 import { OrderDetails } from '../types';
 
-// Configuração principal do axios com interceptor
+declare const window: any;
+
 const api = axios.create({
-  baseURL: 'http://localhost:8081',
-  withCredentials: true, // Mantém cookies para sessões logadas
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+  withCredentials: true,
 });
 
-// Interceptor de resposta para tratar erros globais
+// ✅ Adiciona token no header Authorization
+api.interceptors.request.use(config => {
+  const token = import.meta.env.VITE_EVOLUTION_TOKEN;
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
+  return config;
+});
+
+const INSTANCE = import.meta.env.VITE_EVOLUTION_INSTANCE;
+
+// ✅ Interceptor para logar erros da API
 api.interceptors.response.use(
   response => response,
   error => {
@@ -21,12 +32,16 @@ api.interceptors.response.use(
   }
 );
 
-/** WHATSAPP + IMPRESSÃO */
+/** WHATSAPP */
 export const generateMessage = (order: OrderDetails): string => {
-  const marmitas = order.marmitas.map((m, index) => `🍱 Marmita ${index + 1} - ${m.size.toUpperCase()}`).join('\n');
+  const marmitas = order.marmitas
+    .map((m, index) => `🍱 Marmita ${index + 1} - ${m.size.toUpperCase()}`)
+    .join('\n');
+
   const address = order.deliveryMethod === 'delivery'
     ? `${order.address?.street}, ${order.address?.number}, ${order.address?.neighborhood} - ${order.address?.city}`
     : 'Retirada no local';
+
   return `
 ✅ *Pedido Confirmado!*
 👤 Cliente: ${order.customerName}
@@ -39,25 +54,59 @@ ${marmitas}
   `;
 };
 
+// ✅ Endpoint correto para sua versão da Evolution API
 export const sendOrder = async (order: OrderDetails) => {
   const message = generateMessage(order);
-  const response = await api.post('/message/sendText/instanceName', {
+
+  const response = await api.post(`/message/sendText/${INSTANCE}`, {
     number: order.phone,
     options: { delay: 1200, presence: 'composing' },
     textMessage: { text: message },
   });
+
   return response.data;
 };
 
+/** IMPRESSÃO LOCAL ESTILO COMANDA */
 export const silentPrint = (order: OrderDetails) => {
-  const message = generateMessage(order);
+  const lines: string[] = [];
+  lines.push('============================');
+  lines.push('       COMANDA DE PEDIDO');
+  lines.push('============================');
+  lines.push(`Cliente: ${order.customerName}`);
+  lines.push(`Telefone: ${order.phone}`);
+  lines.push('----------------------------');
+  lines.push(order.deliveryMethod === 'delivery'
+    ? `Entrega: ${order.address?.street}, ${order.address?.number}, ${order.address?.neighborhood} - ${order.address?.city}`
+    : 'Retirada no Local');
+  lines.push('----------------------------');
+  order.marmitas.forEach((m, i) => {
+    lines.push(`MARMITA ${i + 1} - ${m.size.toUpperCase()}`);
+    lines.push('Ingredientes:');
+    m.ingredients.forEach(ing => lines.push(`- ${ing}`));
+    if (m.extras?.length) {
+      lines.push('Extras:');
+      m.extras.forEach(ext => lines.push(`+ ${ext}`));
+    }
+    lines.push('----------------------------');
+  });
+  lines.push(`TOTAL: R$ ${order.totalPrice.toFixed(2)}`);
+  lines.push(`Pagamento: ${order.paymentMethod.toUpperCase()}`);
+  if (order.observation) {
+    lines.push('OBSERVAÇÕES:');
+    lines.push(order.observation);
+  }
+  lines.push('============================');
+
   const printWindow = window.open('', '_blank');
   if (printWindow) {
     printWindow.document.write(`
-      <html><head><title>Pedido - Impressão</title></head>
-      <body style="font-family: monospace; white-space: pre-wrap; font-size: 14px;">
-        ${message.replace(/\n/g, '<br />')}
-      </body></html>
+      <html>
+        <head><title>Imprimir Pedido</title></head>
+        <body style="font-family: monospace; font-size: 14px; white-space: pre;">
+          ${lines.join('\n')}
+        </body>
+      </html>
     `);
     printWindow.document.close();
     printWindow.focus();

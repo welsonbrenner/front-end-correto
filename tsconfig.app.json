@@ -15,7 +15,7 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "composite": true,
-    "outDir": "./dist/app"
+    "noEmit": true
   },
   "include": ["src"]
 }

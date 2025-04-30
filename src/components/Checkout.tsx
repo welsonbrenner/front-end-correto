@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { OrderDetails, PaymentMethod, DeliveryMethod, MarmitaItem, Address } from '../types';
 import { MapPin, CreditCard, Wallet, QrCode, Building2, ArrowLeft, ShoppingBag, Phone, User } from 'lucide-react';
 import { deliveryZones } from '../data/ingredients';
-import api from '../services/api'; // Integração com Evolution API
+import { sendOrder } from '../services/api'; // ✅ Correto: usa o método da Evolution API
 
 interface CheckoutProps {
   marmitas: MarmitaItem[];
   totalPrice: number;
   onBack: () => void;
-  onComplete: (orderDetails: Omit<OrderDetails, 'marmitas' | 'totalPrice'>) => void;
+  onComplete: (orderDetails: OrderDetails) => void;
 }
 
 export function Checkout({
@@ -46,23 +46,20 @@ export function Checkout({
     e.preventDefault();
     const cleanedPhone = phone.replace(/\D/g, '');
 
-    const orderDetails: Omit<OrderDetails, 'marmitas' | 'totalPrice'> = {
+    const orderDetails: OrderDetails = {
       deliveryMethod,
       paymentMethod,
       customerName,
       phone: cleanedPhone,
+      marmitas,
+      totalPrice: finalTotal,
       ...(deliveryMethod === 'delivery' && { address }),
       ...(paymentMethod === 'cash' && changeFor && { changeFor: parseFloat(changeFor) }),
     };
 
     try {
-      await api.post('/orders', { 
-        ...orderDetails, 
-        marmitas, 
-        totalPrice: finalTotal 
-      }); // Envia o pedido para Evolution API
-
-      onComplete(orderDetails); // Continua o fluxo após sucesso
+      await sendOrder(orderDetails); // ✅ Usa o envio via Evolution API corretamente
+      onComplete(orderDetails); // ✅ Envia os dados completos
     } catch (error) {
       console.error('Erro ao enviar pedido:', error);
       alert('Houve um problema ao finalizar seu pedido. Tente novamente.');
@@ -148,7 +145,7 @@ export function Checkout({
           </div>
         </div>
 
-        {/* Endereço (somente para entrega) */}
+        {/* Endereço */}
         {deliveryMethod === 'delivery' && (
           <div className="space-y-4">
             <h3 className="text-xl font-semibold text-gray-800">3. Endereço de Entrega</h3>
